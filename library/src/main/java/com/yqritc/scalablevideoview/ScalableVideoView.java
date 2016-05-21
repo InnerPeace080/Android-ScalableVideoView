@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 
@@ -57,7 +58,25 @@ public class ScalableVideoView extends TextureView implements TextureView.Surfac
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
         Surface surface = new Surface(surfaceTexture);
         if (mMediaPlayer != null) {
-            mMediaPlayer.setSurface(surface);
+
+            class SetSurface implements Runnable {
+                Surface mSurface;
+                SetSurface(Surface surface){mSurface = surface;}
+                @Override
+                public void run() {
+                    try {
+                        mMediaPlayer.setSurface(mSurface);
+                    }
+                    catch(Exception ex){
+                        Log.e("ReactVideoView","onDetachedFromWindow err");
+                    }
+
+                }
+            }
+
+            new Thread(new SetSurface(surface)).start();
+
+
         }
     }
 
@@ -77,15 +96,15 @@ public class ScalableVideoView extends TextureView implements TextureView.Surfac
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        if (mMediaPlayer == null) {
-            return;
-        }
-
-        if (isPlaying()) {
-            stop();
-        }
-        release();
-        mMediaPlayer = null;
+//        if (mMediaPlayer == null) {
+//            return;
+//        }
+//
+//        if (isPlaying()) {
+//            stop();
+//        }
+//        release();
+//        mMediaPlayer = null;
     }
 
     @Override
